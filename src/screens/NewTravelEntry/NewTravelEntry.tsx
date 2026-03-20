@@ -257,7 +257,7 @@ export const NewTravelEntry = () => {
                 }}
               >
                 Momentify needs access to your Camera and Location to securely
-                capture and map your memories.
+                capture and map your memories. Rest assured that everything is saved locally! 
               </Text>
 
               <Pressable
