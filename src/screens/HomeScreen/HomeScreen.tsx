@@ -9,53 +9,46 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TravelEntry } from "../../types";
-import { useTheme } from "../../contexts";
+import { useTheme, useTravelInfo } from "../../contexts";
 import { TravelCard } from "../../components/TravelCard/";
 import { SummaryCard } from "../../components/SummaryCard/";
 import { FloatingActionButton } from "../../components/FloatingActionButton/";
+import { LoadingSpinner } from "../../components/Spinner";
+import { ConfirmationModal } from "../../components/ConfirmationModal"; // Import Modal
 import { styles } from "./HomeScreen.styles";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../../navigation/";
 
-// Inject mock data here or via Context/Props depending on your data layer
-const MOCK_DATA: TravelEntry[] = [{
-    id: '1',
-    photo: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=2000&auto=format&fit=crop',
-    date: 'Oct 12, 2023',
-    name: 'Eiffel Tower',
-    city: 'Paris',
-    region: 'Île-de-France',
-    country: 'France',
-  },
-  {
-    id: '2',
-    photo: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?q=80&w=2000&auto=format&fit=crop',
-    date: 'Jan 05, 2024',
-    name: 'Marina Bay Sands',
-    city: 'Downtown Core',
-    region: 'Central',
-    country: 'Singapore',
-  },
-  {
-    id: '3',
-    photo: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=2000&auto=format&fit=crop',
-    date: 'Mar 20, 2024',
-    name: 'Sydney Opera House',
-    city: 'Sydney',
-    region: 'New South Wales',
-    country: 'Australia',
-  },
-]; // Set to empty to trigger fallback state
-
 export const HomeScreen = () => {
   const { isDark, toggleTheme, colors } = useTheme();
-  const [entries, setEntries] = useState<TravelEntry[]>(MOCK_DATA);
-
+  const { logs, saveLog, loading, deleteLog } = useTravelInfo();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
-  const handleRemove = (id: string) => {
-    setEntries((prev) => prev.filter((entry) => entry.id !== id));
+  // Modal State
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
+
+  // Triggered when trash icon on TravelCard is pressed
+  const promptDelete = (id: string) => {
+    setSelectedEntryId(id);
+    setIsDeleteModalVisible(true);
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalVisible(false);
+    setSelectedEntryId(null);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedEntryId) {
+      deleteLog(selectedEntryId);
+      console.log(`Deleting entry: ${selectedEntryId}`);
+    }
+
+    // Close and reset
+    setIsDeleteModalVisible(false);
+    setSelectedEntryId(null);
   };
 
   const renderEmptyState = () => (
@@ -75,6 +68,7 @@ export const HomeScreen = () => {
       style={[styles.safeArea, { backgroundColor: colors.background }]}
     >
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={styles.headerSpacer} />
@@ -89,30 +83,48 @@ export const HomeScreen = () => {
           />
         </TouchableOpacity>
       </View>
-      <FlatList
-        data={entries}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <>
-            <SummaryCard count={entries.length} />
-            <View style={styles.listHeaderContainer}>
-              <Text
-                style={[styles.listHeaderText, { color: colors.textPrimary }]}
-              >
-                Memories
-              </Text>
-            </View>
-          </>
-        }
-        ListEmptyComponent={renderEmptyState}
-        renderItem={({ item }) => (
-          <TravelCard item={item} onRemove={handleRemove} />
-        )}
-      />
+
+      {/* Conditional Rendering: Spinner vs FlatList */}
+      {loading ? (
+        <LoadingSpinner message="Loading memories..." />
+      ) : (
+        <FlatList
+          data={logs}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <>
+              <SummaryCard count={logs.length} />
+              <View style={styles.listHeaderContainer}>
+                <Text
+                  style={[styles.listHeaderText, { color: colors.textPrimary }]}
+                >
+                  Memories
+                </Text>
+              </View>
+            </>
+          }
+          ListEmptyComponent={renderEmptyState}
+          renderItem={({ item }) => (
+            <TravelCard item={item} onRemove={promptDelete} />
+          )}
+        />
+      )}
+
       <FloatingActionButton
         onPress={() => navigation.navigate("NewTravelEntry")}
+      />
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        visible={isDeleteModalVisible}
+        title="Delete Memory"
+        message="Are you sure you want to delete this memory? This action cannot be undone."
+        confirmText="Delete"
+        confirmColor="#FF3B30" // Destructive red
+        onCancel={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
       />
     </SafeAreaView>
   );

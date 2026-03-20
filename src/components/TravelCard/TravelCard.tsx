@@ -1,10 +1,10 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ImageBackground } from "react-native";
+import { View, Text, Pressable, ImageBackground } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { TravelEntry } from "../../types";
 import { useTheme } from "../../contexts";
-import { styles } from "./TravelCard.styles";
+import { styles, getRemoveButtonStyle } from "./TravelCard.styles";
 
 interface TravelCardProps {
   item: TravelEntry;
@@ -17,7 +17,7 @@ export const TravelCard = ({ item, onRemove }: TravelCardProps) => {
   return (
     <View style={[styles.cardContainer, { backgroundColor: colors.surface }]}>
       <ImageBackground
-        source={{ uri: item.photo }}
+        source={{ uri: item.photo ?? undefined }}
         style={styles.cardImage}
         resizeMode="cover"
       >
@@ -34,18 +34,28 @@ export const TravelCard = ({ item, onRemove }: TravelCardProps) => {
               <Text style={styles.locationName} numberOfLines={1}>
                 {item.name}
               </Text>
+
               <Text style={styles.locationSub} numberOfLines={2}>
                 {item.city}, {item.region} • {item.country}
               </Text>
+
+              {/* Note conditionally rendered below location data */}
+              {!!item.note && (
+                <Text style={styles.noteText} numberOfLines={2}>
+                  "{item.note}"
+                </Text>
+              )}
             </View>
 
-            <TouchableOpacity
-              style={styles.removeButton}
-              activeOpacity={0.8}
-              onPress={() => onRemove && onRemove(item.id)}
-            >
-              <Ionicons name="trash" size={20} color="#FFFFFF" />
-            </TouchableOpacity>
+            {/* Trash button hidden if onRemove logic is not passed (e.g., standard view mode) */}
+            {onRemove && (
+              <Pressable
+                style={({ pressed }) => getRemoveButtonStyle(pressed)}
+                onPress={() => onRemove(item.id)}
+              >
+                <Ionicons name="trash" size={20} color="#FFFFFF" />
+              </Pressable>
+            )}
           </View>
         </LinearGradient>
       </ImageBackground>

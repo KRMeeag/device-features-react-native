@@ -1,4 +1,4 @@
-import { StyleSheet, Platform } from "react-native";
+import { StyleSheet, Platform, ViewStyle } from "react-native";
 
 export const styles = StyleSheet.create({
   cardContainer: {
@@ -34,9 +34,9 @@ export const styles = StyleSheet.create({
     zIndex: 10,
   },
   dateText: {
-    color: "#FFFFFF", // Guaranteed pure white
+    color: "#FFFFFF",
     fontSize: 13,
-    fontWeight: "800", // Increased weight for contrast
+    fontWeight: "800",
     letterSpacing: 0.2,
   },
   gradient: {
@@ -67,7 +67,14 @@ export const styles = StyleSheet.create({
     fontWeight: "400",
     lineHeight: 20,
   },
-  removeButton: {
+  noteText: {
+    color: "rgba(255, 255, 255, 0.85)",
+    fontSize: 14,
+    fontStyle: "italic",
+    marginTop: 6,
+    lineHeight: 20,
+  },
+  removeButtonBase: {
     backgroundColor: "rgba(255,59,48,0.9)",
     width: 44,
     height: 44,
@@ -76,3 +83,11 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
+
+export const getRemoveButtonStyle = (pressed: boolean): ViewStyle[] => [
+  styles.removeButtonBase,
+  {
+    opacity: pressed ? 0.6 : 1,
+    transform: [{ scale: pressed ? 0.9 : 1 }],
+  },
+];

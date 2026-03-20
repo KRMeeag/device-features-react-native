@@ -7,6 +7,7 @@ export interface Address {
 
 export interface TravelEntry extends Address {
     id: string;
-    photo: string;
+    photo: string | null;
     date: string;
+    note: string;
 }
