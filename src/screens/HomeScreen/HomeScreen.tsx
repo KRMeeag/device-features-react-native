@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -14,7 +14,8 @@ import { TravelCard } from "../../components/TravelCard/";
 import { SummaryCard } from "../../components/SummaryCard/";
 import { FloatingActionButton } from "../../components/FloatingActionButton/";
 import { LoadingSpinner } from "../../components/Spinner";
-import { ConfirmationModal } from "../../components/ConfirmationModal"; // Import Modal
+import { ConfirmationModal } from "../../components/ConfirmationModal";
+import { Toast } from "../../components/Toast/";
 import { styles } from "./HomeScreen.styles";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -25,11 +26,22 @@ export const HomeScreen = () => {
   const { logs, saveLog, loading, deleteLog } = useTravelInfo();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
-  // Modal State
+  // Refs
+  const flatListRef = useRef<FlatList<TravelEntry>>(null);
+
+  // States
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    color: "",
+  });
 
-  // Triggered when trash icon on TravelCard is pressed
+  const showToast = (message: string, color: string = "#FF3B30") => {
+    setToast({ visible: true, message, color });
+  };
+
   const promptDelete = (id: string) => {
     setSelectedEntryId(id);
     setIsDeleteModalVisible(true);
@@ -40,15 +52,17 @@ export const HomeScreen = () => {
     setSelectedEntryId(null);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (selectedEntryId) {
-      deleteLog(selectedEntryId);
-      console.log(`Deleting entry: ${selectedEntryId}`);
+      await deleteLog(selectedEntryId);
+      showToast("Memory deleted successfully.", "#34C759"); // Standard success green
     }
 
-    // Close and reset
     setIsDeleteModalVisible(false);
     setSelectedEntryId(null);
+
+    // Scroll to the top of the feed
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
   const renderEmptyState = () => (
@@ -69,7 +83,13 @@ export const HomeScreen = () => {
     >
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
-      {/* Header */}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        backgroundColor={toast.color}
+        onHide={() => setToast({ ...toast, visible: false })}
+      />
+
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={styles.headerSpacer} />
         <Text style={[styles.appName, { color: colors.textPrimary }]}>
@@ -84,11 +104,11 @@ export const HomeScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Conditional Rendering: Spinner vs FlatList */}
       {loading ? (
         <LoadingSpinner message="Loading memories..." />
       ) : (
         <FlatList
+          ref={flatListRef}
           data={logs}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
@@ -116,13 +136,12 @@ export const HomeScreen = () => {
         onPress={() => navigation.navigate("NewTravelEntry")}
       />
 
-      {/* Confirmation Modal */}
       <ConfirmationModal
         visible={isDeleteModalVisible}
         title="Delete Memory"
         message="Are you sure you want to delete this memory? This action cannot be undone."
         confirmText="Delete"
-        confirmColor="#FF3B30" // Destructive red
+        confirmColor="#FF3B30"
         onCancel={handleCancelDelete}
         onConfirm={handleConfirmDelete}
       />

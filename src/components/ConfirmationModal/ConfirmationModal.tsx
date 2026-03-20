@@ -7,8 +7,10 @@ interface ConfirmationModalProps {
   visible: boolean;
   title: string;
   message: string;
-  confirmText?: string; // New prop
-  confirmColor?: string; // New prop
+  confirmText?: string;
+  confirmColor?: string;
+  cancelText?: string; // New
+  cancelColor?: string; // New
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -17,8 +19,10 @@ export const ConfirmationModal = ({
   visible,
   title,
   message,
-  confirmText = "Confirm", // Default value
+  confirmText = "Confirm",
   confirmColor,
+  cancelText = "Cancel", // Default
+  cancelColor,
   onCancel,
   onConfirm,
 }: ConfirmationModalProps) => {
@@ -45,12 +49,18 @@ export const ConfirmationModal = ({
               onPress={onCancel}
               style={({ pressed }) =>
                 getDynamicButtonStyle(pressed, "cancel", {
+                  cancelColor,
                   borderColor: colors.border,
                 })
               }
             >
-              <Text style={[styles.buttonText, { color: colors.textPrimary }]}>
-                Cancel
+              <Text
+                style={[
+                  styles.buttonText,
+                  { color: cancelColor || colors.textPrimary },
+                ]}
+              >
+                {cancelText}
               </Text>
             </Pressable>
 

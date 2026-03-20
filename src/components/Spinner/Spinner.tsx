@@ -11,7 +11,7 @@ export const LoadingSpinner = ({ message = 'Loading...' }: LoadingSpinnerProps) 
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container]}>
       <ActivityIndicator size="large" color={colors.primary} />
       {message && (
         <Text style={[styles.text, { color: colors.textSecondary }]}>

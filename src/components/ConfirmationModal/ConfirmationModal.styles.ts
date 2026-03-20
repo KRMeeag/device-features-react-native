@@ -54,7 +54,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
   },
   confirmButtonBase: {
-    backgroundColor: "#FF3B30", // Default fallback
+    backgroundColor: "#FF3B30",
   },
   buttonText: {
     fontSize: 16,
@@ -68,17 +68,24 @@ export const styles = StyleSheet.create({
 export const getDynamicButtonStyle = (
   pressed: boolean,
   type: "cancel" | "confirm",
-  options?: { borderColor?: string; confirmColor?: string },
+  options?: {
+    borderColor?: string;
+    confirmColor?: string;
+    cancelColor?: string;
+  },
 ): ViewStyle[] => {
   const baseStyles: ViewStyle[] = [styles.buttonBase];
 
   if (type === "cancel") {
     baseStyles.push(styles.cancelButtonBase);
-    if (options?.borderColor)
+    // Prioritize specific cancel color, fallback to generic border color
+    if (options?.cancelColor) {
+      baseStyles.push({ borderColor: options.cancelColor });
+    } else if (options?.borderColor) {
       baseStyles.push({ borderColor: options.borderColor });
+    }
   } else {
     baseStyles.push(styles.confirmButtonBase);
-    // Overrides default red if a custom color is passed
     if (options?.confirmColor)
       baseStyles.push({ backgroundColor: options.confirmColor });
   }
