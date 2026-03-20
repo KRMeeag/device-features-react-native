@@ -1,11 +1,5 @@
 import React, { useState, useRef } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StatusBar,
-} from "react-native";
+import { View, Text, FlatList, Pressable, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TravelEntry } from "../../types";
@@ -95,13 +89,19 @@ export const HomeScreen = () => {
         <Text style={[styles.appName, { color: colors.textPrimary }]}>
           Momentify
         </Text>
-        <TouchableOpacity style={styles.themeToggle} onPress={toggleTheme}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.themeToggle,
+            { opacity: pressed ? 0.2 : 1 },
+          ]}
+          onPress={toggleTheme}
+        >
           <Ionicons
             name={isDark ? "sunny" : "moon"}
             size={24}
             color={colors.textPrimary}
           />
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {loading ? (
